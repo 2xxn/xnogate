@@ -157,13 +157,13 @@ class Wallet {
      */
     async create_receive_block(accountInfo, hash, amount) {
         const data = {
-            walletBalanceRaw: (accountInfo.balance||"0"), // Current balance in RAW from account info
-            toAddress: this.address, // Your address
-            representativeAddress: (this.representative||DEFAULTS.representative), // Address of the representative
-            frontier: (accountInfo.frontier||DEFAULTS.frontier), // previous block, 0000... by default
-            transactionHash: hash, // From the pending transaction
-            amountRaw: amount, // From the pending transaction in RAW
-            work: (await this.generate_work((accountInfo.frontier||this.publicKey))), // Work is generated server-side but still generated separately.
+            walletBalanceRaw: (accountInfo.balance||"0"),                               // Current balance in RAW from account info
+            toAddress: this.address,                                                    // Your address
+            representativeAddress: (this.representative||DEFAULTS.representative),      // Address of the representative
+            frontier: (accountInfo.frontier||DEFAULTS.frontier),                        // previous block, 0000... by default
+            transactionHash: hash,                                                      // From the pending transaction
+            amountRaw: amount,                                                          // From the pending transaction in RAW
+            work: (await this.generate_work((accountInfo.frontier||this.publicKey))),   // Work is generated server-side but still generated separately.
         }
         return block.receive(data, this.key);
     }
@@ -186,13 +186,13 @@ class Wallet {
      */
     async create_send_block(accountInfo, receiverAddress, amount) {
         const data = {
-            walletBalanceRaw: accountInfo.balance, // Current balance from account info     
-            fromAddress: this.address, // Your wallet address
-            toAddress: receiverAddress, // The address to send to
-            representativeAddress: (this.representative||DEFAULTS.representative), // From account info
-            frontier: accountInfo.frontier, // Previous block, from account info
-            amountRaw: tools.convert(amount, "NANO", "RAW"), // The amount to send in RAW
-            work: (await this.generate_work(accountInfo.frontier)), // Work is generated server-side but still generated separately.
+            walletBalanceRaw: accountInfo.balance,                                  // Current balance from account info     
+            fromAddress: this.address,                                              // Your wallet address
+            toAddress: receiverAddress,                                             // The address to send to
+            representativeAddress: (this.representative||DEFAULTS.representative),  // From account info
+            frontier: accountInfo.frontier,                                         // Previous block, from account info
+            amountRaw: tools.convert(amount, "NANO", "RAW"),                        // The amount to send in RAW
+            work: (await this.generate_work(accountInfo.frontier)),                 // Work is generated server-side but still generated separately.
         }
         return block.send(data, this.key);
     }
@@ -215,21 +215,29 @@ class Wallet {
     /**
      * Send NANO from current Wallet to the provided wallet
      * @param {string} wallet
-     * @param {number} amount
+     * @param {number} amount can be "all"
      */
-    async send_nano(wallet, amount) {
+    async send_nano(wallet, amount, retries=0) {
+        // Obtain all the neccessities (prepare the send_block!)
         let info = await this.account_info();
+        if(amount=="all") amount = tools.convert(info.balance, "RAW", "NANO");
         let block = await this.create_send_block(info, wallet, amount)
 
+        // Form the body
         let body = {
             "action": "process",
             "subtype": "send",
             "block": JSON.stringify(block)
         }
 
+        // Invoke the action
         let response = await this.invoke(body);
         let json = await response.json();
-        return (json?.hash || false);
+
+        // Try 3 times total, return false if fails either way
+        let ret = json?.hash || false;
+        if(ret || retries>2) return ret;
+        return (await this.send_nano(wallet,amount,retries+1));
     }
 
     /**
