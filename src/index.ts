@@ -1,7 +1,7 @@
 import { Wallet } from "./modules/wallet";
 import { Payments, Payment, config } from "./modules/gateway"
 
-const payments: object = {
+const payments = {
     /**
      * Creates a new Payment gateway with requested amount.
      * Gateway does not start automatically, you must call start(onSuccess,onTimeout) on the returned value.
