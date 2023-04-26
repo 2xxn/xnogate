@@ -50,7 +50,7 @@ const Interval = {
      */
     returnChange: async function(change) {
         if(change<=0) return false;
-        return (await this.wallet.send_nano(this.lastAddress,change));
+        return (await this.wallet.send_nano(this.lastAddress,"all"));
     },
 
     /**
@@ -100,4 +100,4 @@ class Payments {
 
 }
 
-module.exports = {Payments,Interval};
+module.exports = { Payments, Interval };
