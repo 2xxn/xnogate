@@ -25,7 +25,6 @@ const payments = {
      * @param payment Payment to start
      * @param onSuccess Callback when the payment goes through
      * @param onTimeout Callback when the payment times out
-     * @returns {undefined} This function is a void
      */
     start: (payment: Payment, onSuccess: Function, onTimeout: Function): void => payment.start(onSuccess, onTimeout),
 }
