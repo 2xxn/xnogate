@@ -1,4 +1,4 @@
-const Wallet = require("../modules/wallet");
+const { Wallet } = require("../dist/modules/wallet");
 
 function findAddressWithString(seed, string, i=0) {
     try {
@@ -16,7 +16,7 @@ function findAddressWithString(seed, string, i=0) {
     // Not much else to do with a fresh random seed
 }
 
-findAddressWithString(Wallet.generateSeed(),"elon"); // Don't try longer words than 4 characters, js is not the language for that
+// findAddressWithString(Wallet.generateSeed(),"elon"); // Don't try longer words than 4 characters, js is not the language for that
 
 (async()=>{
     // Existing address test

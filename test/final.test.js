@@ -1,6 +1,6 @@
-const { payments } = require("../index");
+const { payments } = require("../dist/index.js");
 
-const AMT = 0.0001;
+const AMT = 0.00005;
 const DEST = "nano_3ne639sua1y7c5oy1isaupa617y7k1gnuceab5m6ofor4uddn7t5yk37asq5";
 const TMT = 420; // this is in seconds
 
