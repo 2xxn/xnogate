@@ -69,3 +69,5 @@ If you find this module useful and would like to support its development, please
 `nano_3ujqppynxfakp59i99o75qkwi1dm6btox9gndegbnuyxpc53sw7ikmb1zp8z`
 
 Your contribution is greatly appreciated and will help ensure the continued maintenance and improvement of this project, and some extra motivation. Thank you for your support!
+
+<small>TODO: add money return on timeout</small>
