@@ -30,8 +30,15 @@ class Payment {
      * @returns nothing, it's just a void called inside the setInterval function
      */
     async #intervalFunction(onSuccess: Function, onTimeout: Function): Promise<void> {
+        // Get the pending amount and sum it up
+        let pending = await this.wallet.pending();
+        this.currentAmount = Wallet.receivable_from_pending(pending);
+
         // Check if the payment already timed out
         if (Date.now() - this.startTime >= this.timeout * 1000) {
+
+            // Return money.
+            await this.returnChange(this.currentAmount);
 
             // Clear the interval and call the timeout callback
             clearInterval(this.interval);
@@ -40,10 +47,6 @@ class Payment {
             // Stop the code right there
             return;
         }
-        
-        // Get the pending amount and sum it up
-        let pending = await this.wallet.pending();
-        this.currentAmount = Wallet.receivable_from_pending(pending);
 
         // Don't continue the code if the amount is still not enough
         if(this.amount >= this.currentAmount) return;
