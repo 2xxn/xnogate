@@ -1,6 +1,6 @@
 {
   "name": "xnogate",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "xnogate is a Node.js library for processing NANO ($XNO) cryptocurrency payments in your application, providing a reliable and secure way to receive and validate payments. Ideal for e-commerce websites, online marketplaces, and other applications. Start accepting NANO payments in minutes.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
