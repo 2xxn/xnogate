@@ -34,11 +34,21 @@ class Payment {
         let pending = await this.wallet.pending();
         this.currentAmount = Wallet.receivable_from_pending(pending);
 
+        // Set the last address to the last (technically first) block's source address,
+        // if somehow not found just give that bonus to destination address ;)
+        this.lastAddress = Object.values(pending.blocks)?.[0]?.source || this.destination;
+
         // Check if the payment already timed out
         if (Date.now() - this.startTime >= this.timeout * 1000) {
 
-            // Return money.
-            await this.returnChange(this.currentAmount);
+            if(this.currentAmount > 0) {
+                // Receive money.
+                await this.wallet.receive_all();
+
+                // Return money.
+                await this.returnChange(this.currentAmount);
+            }
+            
 
             // Clear the interval and call the timeout callback
             clearInterval(this.interval);
@@ -51,12 +61,8 @@ class Payment {
         // Don't continue the code if the amount is still not enough
         if(this.amount >= this.currentAmount) return;
 
-        // Set the last address to the last (technically first) block's source address,
-        // if somehow not found just give that bonus to destination address ;)
-        this.lastAddress = Object.values(pending.blocks)?.[0]?.source || this.destination;
-
         // Receive all the blocks!
-        await this.wallet.receive_all(pending);
+        await this.wallet.receive_all();
 
         // Send the required amount to destination address!
         await this.wallet.send_nano(this.destination,this.amount);

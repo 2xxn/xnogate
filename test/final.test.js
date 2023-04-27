@@ -1,8 +1,8 @@
 const { payments } = require("../dist/index.js");
 
-const AMT = 0.00005;
+const AMT = 0.0005;
 const DEST = "nano_3ne639sua1y7c5oy1isaupa617y7k1gnuceab5m6ofor4uddn7t5yk37asq5";
-const TMT = 420; // this is in seconds
+const TMT = 30; // this is in seconds
 
 (async()=>{
     // payments.create({timeout:420},0.0001); // will throw missing destination address error
