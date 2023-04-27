@@ -1,6 +1,6 @@
 # xnogate
 
-xnogate is a Node.js payment gateway for the NANO (XNO) cryptocurrency.
+xnogate is a safe, reliable payment gateway library for the NANO (XNO) cryptocurrency.
 
 ## Installation
 
@@ -70,4 +70,4 @@ If you find this module useful and would like to support its development, please
 
 Your contribution is greatly appreciated and will help ensure the continued maintenance and improvement of this project, and some extra motivation. Thank you for your support!
 
-<small>TODO: add failsafes in `invoke` method, Wallet class</small>
+<small>TODO: add money return on timeout</small>
