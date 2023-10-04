@@ -7,7 +7,7 @@
   "dependencies": {
     "bignumber.js": "^9.0.2",
     "blakejs": "^1.2.1",
-    "bson": "^5.4.0",
+    "bson": "^5.5.0",
     "byte-base64": "^1.1.0",
     "crypto-js": "^3.1.9-1",
     "data-uri-to-buffer": "^4.0.1",
