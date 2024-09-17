@@ -32,7 +32,7 @@ class Payment {
     async #intervalFunction(onSuccess: Function, onTimeout: Function): Promise<void> {
         // Get the pending amount and sum it up
         let pending = await this.wallet.pending();
-        this.currentAmount = Wallet.receivable_from_pending(pending);
+        this.currentAmount = Wallet.receivableFromPending(pending);
 
         // Set the last address to the last (technically first) block's source address,
         // if somehow not found just give that bonus to destination address ;)
@@ -43,7 +43,7 @@ class Payment {
 
             if(this.currentAmount > 0) {
                 // Receive money.
-                await this.wallet.receive_all();
+                await this.wallet.receiveAll();
 
                 // Return money.
                 await this.returnChange(this.currentAmount);
@@ -62,10 +62,10 @@ class Payment {
         if(this.amount >= this.currentAmount) return;
 
         // Receive all the blocks!
-        await this.wallet.receive_all();
+        await this.wallet.receiveAll();
 
         // Send the required amount to destination address!
-        await this.wallet.send_nano(this.destination,this.amount);
+        await this.wallet.send(this.destination,this.amount);
 
         // Clear the interval and call success callback
         clearInterval(this.interval);
@@ -99,7 +99,7 @@ class Payment {
         if(change<=0) return false;
 
         // Try to send NANO back
-        const response = await this.wallet.send_nano(this.lastAddress,"all");
+        const response = await this.wallet.send(this.lastAddress,"all");
 
         // Return either true or false, we don't need any extra info if any at all
         return response !== false;
