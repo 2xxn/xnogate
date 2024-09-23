@@ -1,5 +1,6 @@
 import { Wallet } from "./modules/wallet";
-import { Payments, Payment, config } from "./modules/gateway"
+import { Payments, Payment, Config } from "./modules/gateway"
+import { CallbackFunction } from "./types/library";
 
 const payments = {
     /**
@@ -11,11 +12,11 @@ const payments = {
      * @throws if config or amount is invalid
      * @returns
      */
-    create: (config: config, amount: number): Payment => {
+    create: (config: Config, amount: number): Payment => {
         // If seed is not supplied, it will be generated randomly with the provided index (or 0 if that wasn't provided either)
+        // Much advised to use a custom seed.
         if(isNaN(amount) || amount<=0) throw Error("Amount must be of number type, not NaN and higher than 0!");
 
-        // Create the payment
         return Payments.create(config, amount);
     },
 
@@ -26,7 +27,7 @@ const payments = {
      * @param onSuccess Callback when the payment goes through
      * @param onTimeout Callback when the payment times out
      */
-    start: (payment: Payment, onSuccess: Function, onTimeout: Function): void => payment.start(onSuccess, onTimeout),
+    start: (payment: Payment, onSuccess: CallbackFunction, onTimeout: CallbackFunction): void => payment.start(onSuccess, onTimeout),
 }
 
-export { payments, Wallet as wallet }
+export { payments, Wallet as wallet, Wallet, payments as Payments } // No idea why I made it lowercase in the past but I'm keeping both ways

@@ -21,6 +21,6 @@ function findAddressWithString(seed, string, i=0) {
 (async()=>{
     // Existing address test
     let w = await (Wallet.new("0000000000000000000000000000000000000000000000000000000000000000",0)).validate(); 
-    let i = await w.account_info();
+    let i = await w.accountInfo();
     console.log(i);
 })();

@@ -68,7 +68,7 @@ class Wallet {
      * @throws if any of the given parameters were bad
      * @returns freshly created Wallet class
      */
-    static new(seed: string, index: number, options: Options = null): Wallet {
+    static new(seed: string, index: number, options: Options = {}): Wallet {
         // Make sure params are valid
         if ((index > 4294967295 || index < 0)) throw Error("Invalid index")
         if(!seed.match(/^[0-9A-Fa-f]{64,64}$/g)) throw Error("Invalid seed");
@@ -87,14 +87,14 @@ class Wallet {
      * @throws If the wallet is invalid or the key is not a 64-character string.
      * @returns instance of the Wallet class
      */
-    constructor(key: string, address: string, options: Options = null) {
+    constructor(key: string, address: string, options: Options = {}) {
         this.options = { ...DEFAULTS, ...options }
         // Make sure both variables are valid
         if(!key.match(/^[0-9A-Fa-f]{64,64}$/g)) throw Error("Invalid private key");
         if (!tools.validateAddress(address)) throw Error("Invalid NANO address");
 
         // Set all the readonly variables and server!
-        this.server = options.rpc; // this can be changed after initializing
+        this.server = this.options.rpc; // this can be changed after initializing
         this.key = key;
         this.address = address;
         this.publicKey = tools.addressToPublicKey(address);

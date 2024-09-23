@@ -1,17 +1,11 @@
 // Import all the necessary classes/libraries!
+import { CallbackFunction, Config } from "../types/library";
 import { Wallet } from "./wallet"
 import { tools }  from "nanocurrency-web";
 
-// This structure is very important.
-interface config {
-    seed: string;
-    index: number;
-    timeout: number;
-    destination: string;
-}
-
 // Define the Payment class
 class Payment {
+    id: string;                                 // Custom Payment ID to distinguish payments
     readonly destination: string;               // The destination wallet address
     readonly wallet: Wallet;                    // Wallet class
     readonly amount: number;                    // Requested amount
@@ -22,49 +16,37 @@ class Payment {
     startTime: EpochTimeStamp;                  // Timestamp
     interval: ReturnType<typeof setInterval>    // Interval
 
-
     /**
      * As much as unnecessary it is to make a doc for this function, it is the most crucial part of the whole payment gateway so I believe it deserves one
      * @param onSuccess callback that will be called if the money went through and was already paid to the destination address
      * @param onTimeout callback that will be called if the payment timed out
      * @returns nothing, it's just a void called inside the setInterval function
      */
-    async #intervalFunction(onSuccess: Function, onTimeout: Function): Promise<void> {
-        // Get the pending amount and sum it up
-        let pending = await this.wallet.pending();
+    async #intervalFunction(onSuccess: CallbackFunction, onTimeout: CallbackFunction): Promise<void> {
+        const pending = await this.wallet.pending();
+        
         this.currentAmount = Wallet.receivableFromPending(pending);
-
         // Set the last address to the last (technically first) block's source address,
-        // if somehow not found just give that bonus to destination address ;)
         this.lastAddress = Object.values(pending.blocks)?.[0]?.source || this.destination;
 
         // Check if the payment already timed out
-        if (Date.now() - this.startTime >= this.timeout * 1000) {
-
+        if ((Date.now() - this.startTime) >= this.timeout * 1000) {
             if(this.currentAmount > 0) {
-                // Receive money.
                 await this.wallet.receiveAll();
 
-                // Return money.
                 await this.returnChange(this.currentAmount);
             }
             
-
             // Clear the interval and call the timeout callback
             clearInterval(this.interval);
             onTimeout(this);
 
-            // Stop the code right there
             return;
         }
 
-        // Don't continue the code if the amount is still not enough
-        if(this.amount >= this.currentAmount) return;
+        if(this.amount > this.currentAmount) return;
 
-        // Receive all the blocks!
         await this.wallet.receiveAll();
-
-        // Send the required amount to destination address!
         await this.wallet.send(this.destination,this.amount);
 
         // Clear the interval and call success callback
@@ -81,11 +63,8 @@ class Payment {
      * @param onSuccess callback that will be called if the money went through and was already paid to the destination address
      * @param onTimeout callback that will be called if the payment timed out
      */
-    start(onSuccess: Function, onTimeout: Function): void {
-        // Set the start time to now!
+    start(onSuccess: CallbackFunction, onTimeout: CallbackFunction): void {
         this.startTime = Date.now() as EpochTimeStamp;
-
-        // Start the interval to be checking for payment every 7 seconds (to not flood the rpc server)
         this.interval = setInterval(this.#intervalFunction.bind(this, onSuccess, onTimeout), 7000);
     }
 
@@ -95,14 +74,12 @@ class Payment {
      * @returns true if it succeeded, false if it did not
      */
     async returnChange(change: number): Promise<boolean | object> {
-        // Make sure it's not smaller or equal to 0 otherwise don't send anything (read as: exact amount delivered)
-        if(change<=0) return false;
+        if(change <= 0) return false;
 
-        // Try to send NANO back
-        const response = await this.wallet.send(this.lastAddress,"all");
+        const response = await this.wallet.send(this.lastAddress, "all");
 
         // Return either true or false, we don't need any extra info if any at all
-        return response !== false;
+        return !!response;
     }
 
     /**
@@ -130,38 +107,29 @@ class Payment {
 
 }
 
-
 // Define the Payments class
 class Payments {
-
-
     /**
      * it's an alias of payment.start(onSuccess, onTimeout) which you should probably use instead of this
      * @param payment payment to start
      * @param onSuccess success callback 
      * @param onTimeout timeout callback
      */
-    static start = (payment: Payment, onSuccess: Function, onTimeout: Function): void => payment.start(onSuccess, onTimeout);
+    static start = (payment: Payment, onSuccess: CallbackFunction, onTimeout: CallbackFunction): void => payment.start(onSuccess, onTimeout);
 
     /**
      * Create a new Payment using config and the amount
      * @param config config including seed, index, timeout (in seconds) and destination address
      * @param amount amount in NANO, not RAW
-     * @returns instance of the payment class!
+     * @returns payment
      */
-    static create(config: config, amount: number): Payment {
-        // error checking is done in the main file (i think)
-        // create new wallet from the provided seed and index
-        // (or if it's not provided, generate a new one and use index 0!)
-        let wallet: Wallet = Wallet.new(config.seed || Wallet.generateSeed(), config.index || 0);
+    static create(config: Config, amount: number): Payment {
+        const wallet: Wallet = Wallet.new(config.seed ?? Wallet.generateSeed(), config.index ?? 0);
+        const payment: Payment = new Payment(amount, config.timeout, wallet, config.destination);
 
-        // Create the new Payment!
-        let payment: Payment = new Payment(amount, config.timeout, wallet, config.destination);
-
-        // Now, return it!
         return payment;
     }
 
 }
 
-export { Payments, Payment, config };
+export { Payments, Payment, Config };
