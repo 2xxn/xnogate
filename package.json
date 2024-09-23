@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "bignumber.js": "^9.0.2",
+    "bignumber.js": "^9.1.2",
     "blakejs": "^1.2.1",
     "bson": "^5.5.0",
     "byte-base64": "^1.1.0",
