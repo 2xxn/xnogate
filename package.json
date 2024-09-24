@@ -27,7 +27,7 @@
     "saslprep": "^1.0.3",
     "sift": "^16.0.1",
     "smart-buffer": "^4.2.0",
-    "socks": "^2.7.4",
+    "socks": "^2.8.3",
     "sparse-bitfield": "^3.0.3",
     "tr46": "^3.0.0",
     "typescript": "^5.2.2",
