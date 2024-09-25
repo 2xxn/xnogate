@@ -1,3 +1,4 @@
+import { Options as ReconnectingWebSocketOptions } from "reconnecting-websocket";
 import { Payment } from "../modules/gateway";
 
 export type CallbackFunction = (p: Payment) => Promise<void>;
@@ -15,4 +16,9 @@ export interface Config {
     index: number;
     timeout: number;
     destination: string;
+}
+
+export interface WebSocketOptions {
+    ws: string; // WebSocket url
+    rwsOptions?: Partial<ReconnectingWebSocketOptions>
 }
