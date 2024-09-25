@@ -23,7 +23,7 @@
     "nanocurrency-web": "^1.4.3",
     "node-domexception": "^1.0.0",
     "node-fetch": "^2.6.13",
-    "punycode": "^2.3.0",
+    "reconnecting-websocket": "^4.4.0",
     "saslprep": "^1.0.3",
     "sift": "^16.0.1",
     "smart-buffer": "^4.2.0",
@@ -33,7 +33,8 @@
     "typescript": "^5.2.2",
     "web-streams-polyfill": "^3.2.1",
     "webidl-conversions": "^7.0.0",
-    "whatwg-url": "^11.0.0"
+    "whatwg-url": "^11.0.0",
+    "ws": "^8.18.0"
   },
   "scripts": {
     "build": "rmdir dist /s /q & tsc",
@@ -56,6 +57,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^18.16.1",
-    "@types/node-fetch": "^2.6.3"
+    "@types/node-fetch": "^2.6.3",
+    "@types/ws": "^8.5.12"
   }
 }
