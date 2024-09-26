@@ -30,23 +30,34 @@ export class NanoWebSocketManager extends EventEmitter {
     }
 
     /**
-     * Create a WebSocket update packet
-     * @param accountsToRemove List of accounts to remove from tracking
+     * Create a WebSocket subscribe packet
      * @param accountsToAdd List of accounts to add to tracking
      * @returns JSON
      */
-    private craftUpdatePacket(accountsToRemove?: string[], accountsToAdd?: string[]): Message {
+    private _subscribePacket(accountsToAdd?: string[]): Message {
         return JSON.stringify({
-            "action": "update",
-            "topic": "confirmation",
+            "action":"subscribe",
+            "topic":"confirmation",
             "options": {
                 "confirmation_type":"active_quorum",
-                "accounts_add": accountsToAdd,
-                "accounts_del": accountsToRemove
+                "accounts": accountsToAdd ?? []
             }
         });
+    }
 
-        // return JSON.stringify({"action":"subscribe","topic":"confirmation","options":{"confirmation_type":"active_quorum"}});
+        /**
+     * Create a WebSocket unsubscribe packet
+     * @param accountsToRemove List of accounts to remove from tracking
+     * @returns JSON
+     */
+    private _unsubscribePacket(accountsToRemove?: string[]): Message {
+        return JSON.stringify({
+            "action":"unsubscribe",
+            "topic":"confirmation",
+            "options": {
+                "accounts": accountsToRemove ?? []
+            }
+        });
     }
 
     // Handle WebSocket connection open
@@ -82,7 +93,7 @@ export class NanoWebSocketManager extends EventEmitter {
         if (this.ws.readyState === WS.OPEN && this.addressList.size > 0) {
             console.log('Subscribing to addresses:', this.addressList);
 
-            this.ws.send(this.craftUpdatePacket([], Array.from<string>(this.addressList)));
+            this.ws.send(this._subscribePacket(Array.from<string>(this.addressList)));
         } else if (this.addressList.size === 0) {
             console.log('No addresses to subscribe to.');
         }
@@ -93,7 +104,7 @@ export class NanoWebSocketManager extends EventEmitter {
         if (this.ws.readyState === WS.OPEN && addresses.length > 0) {
             console.log('Unsubscribing from addresses:', addresses);
 
-            this.ws.send(this.craftUpdatePacket(addresses, []));
+            this.ws.send(this._unsubscribePacket(addresses));
         }
     }
 
@@ -102,7 +113,7 @@ export class NanoWebSocketManager extends EventEmitter {
         if (this.addressList.has(address)) return;
 
         this.addressList.add(address);
-        this.ws.send(this.craftUpdatePacket([], [address]));
+        this.ws.send(this._subscribePacket([address]));
     }
 
     // Public method to remove an address and unsubscribe
