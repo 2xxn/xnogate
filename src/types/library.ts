@@ -3,11 +3,10 @@ import { Payment } from "../modules/gateway";
 
 export type CallbackFunction = (p: Payment) => Promise<void>;
 
-export interface Options {
+export interface Options extends WebSocketOptions {
     representative?: string;
     frontier?: string;
     rpc?: string;
-    ws?: string; // TODO: Support
     defaultHeaders?: { [key: string]: string; };
 }
 
@@ -19,6 +18,6 @@ export interface Config {
 }
 
 export interface WebSocketOptions {
-    ws: string; // WebSocket url
+    ws?: string; // WebSocket url
     rwsOptions?: Partial<ReconnectingWebSocketOptions>
 }
