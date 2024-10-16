@@ -2,6 +2,7 @@ import WS from 'ws';
 import ReconnectingWebSocket, { Message } from 'reconnecting-websocket';
 import EventEmitter from 'events';
 import { WebSocketOptions } from '../types/library';
+import { tools } from 'nanocurrency-web';
 
 export class NanoWebSocketManager extends EventEmitter {
     private ws: ReconnectingWebSocket = null;
@@ -9,6 +10,8 @@ export class NanoWebSocketManager extends EventEmitter {
 
     constructor(options: WebSocketOptions) {
         super();
+
+        if(!options.ws) throw Error("WebSocket URL not supplied");
 
         // Address list to subscribe for transactions
         this.addressList = new Set();
@@ -63,23 +66,24 @@ export class NanoWebSocketManager extends EventEmitter {
     // Handle WebSocket connection open
     private _handleOpen() {
         console.log('WebSocket connected!');
+        this.emit("open");
         this._subscribeToAddresses();
     }
 
     // Handle WebSocket messages
     private _handleMessage(msg: { data: string; }) {
         const data = JSON.parse(msg.data);
-        console.log(data);
 
         if (data.topic === 'confirmation') {
             const confirmedHash = data.message.hash;
             const account = data.message.account;
             
-            console.log('Confirmed:', confirmedHash);
+            const link = data.message.block?.link
+            const receiver = tools.publicKeyToAddress(link);
 
             // Emit event only if the confirmation is for an address in the list
-            if (this.addressList.has(account)) {
-                this.emit('confirmed', { account, hash: confirmedHash });
+            if (this.addressList.has(receiver)) {
+                this.emit('confirmed', { account, hash: confirmedHash, receiver });
             }
         }
     }
