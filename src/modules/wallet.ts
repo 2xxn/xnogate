@@ -5,6 +5,8 @@ import { ReceiveBlock, SignedBlock } from "nanocurrency-web/dist/lib/block-signe
 import fetch, { Response } from 'node-fetch';
 import { Account, AccountRepresentative, GenerateWork, PendingBlocks, Process } from "../types/node";
 import { Options } from "../types/library";
+import EventEmitter from "events";
+import { NanoWebSocketManager } from "./websocket";
 
 /*
 * Default settings to use either if a value is not set or just use
@@ -13,11 +15,10 @@ import { Options } from "../types/library";
 const DEFAULTS: Options = {
     representative: "nano_1b9wguhh39at8qtm93oghd6r4f4ubk7zmqc9oi5ape6yyz4s1gamuwn3jjit", // Default representative, used if the address doesn't have one (which in case of payment gateway, should NOT)
     frontier: "0000000000000000000000000000000000000000000000000000000000000000",        // Default frontier if fetching the last one goes wrong (which always happens if an account didn't send or receive any transactions)
-    rpc: "https://nano.a.exodus.io/",                                                    // The RPC server used by the Wallet, Why Exodus? No limit on requests
+    rpc: "https://nanoslo.0x.no/proxy",                                                    // The RPC server used by the Wallet
 };
 
-class Wallet {
-
+class Wallet extends EventEmitter {
     // #region static functions!
 
     /**
@@ -35,6 +36,7 @@ class Wallet {
 
     // #endregion
 
+    readonly ws: NanoWebSocketManager;
     readonly address: string;       // NANO address
     readonly key: string;           // private key (named just key because it's kind of important)
     readonly publicKey: string;     // public key
@@ -87,13 +89,19 @@ class Wallet {
      * @throws If the wallet is invalid or the key is not a 64-character string.
      * @returns instance of the Wallet class
      */
-    constructor(key: string, address: string, options: Options = {}) {
+    constructor(key: string, address: string, options: Partial<Options> = {}) {
+        super();
+
         this.options = { ...DEFAULTS, ...options }
         // Make sure both variables are valid
         if(!key.match(/^[0-9A-Fa-f]{64,64}$/g)) throw Error("Invalid private key");
         if (!tools.validateAddress(address)) throw Error("Invalid NANO address");
 
         // Set all the readonly variables and server!
+        if(options.ws) {
+            this.ws = new NanoWebSocketManager(options);
+        }
+
         this.server = this.options.rpc; // this can be changed after initializing
         this.key = key;
         this.address = address;
@@ -152,6 +160,7 @@ class Wallet {
         }
         let response = await this.invoke(body);
         const json = await response.json();
+
         return json as PendingBlocks;
     }
 
