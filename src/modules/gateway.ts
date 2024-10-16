@@ -1,10 +1,12 @@
 // Import all the necessary classes/libraries!
-import { CallbackFunction, Config } from "../types/library";
+import { CallbackFunction, Config, Options } from "../types/library";
 import { Wallet } from "./wallet"
-import { tools }  from "nanocurrency-web";
+import { tools, wallet }  from "nanocurrency-web";
 
 // Define the Payment class
 class Payment {
+    private skipNext: boolean = false;
+
     id: string;                                 // Custom Payment ID to distinguish payments
     readonly destination: string;               // The destination wallet address
     readonly wallet: Wallet;                    // Wallet class
@@ -22,7 +24,9 @@ class Payment {
      * @param onTimeout callback that will be called if the payment timed out
      * @returns nothing, it's just a void called inside the setInterval function
      */
-    async #intervalFunction(onSuccess: CallbackFunction, onTimeout: CallbackFunction): Promise<void> {
+    private async _intervalFunction(onSuccess: CallbackFunction, onTimeout: CallbackFunction): Promise<void> {
+        if(this.skipNext) return; // Skip
+
         const pending = await this.wallet.pending();
         
         this.currentAmount = Wallet.receivableFromPending(pending);
@@ -40,14 +44,17 @@ class Payment {
             // Clear the interval and call the timeout callback
             clearInterval(this.interval);
             onTimeout(this);
-
+            
             return;
         }
 
         if(this.amount > this.currentAmount) return;
+        this.skipNext = true;
 
         await this.wallet.receiveAll();
         await this.wallet.send(this.destination,this.amount);
+
+        if(this.wallet.ws) this.wallet.ws.unsubscribeAddress(this.address);
 
         // Clear the interval and call success callback
         clearInterval(this.interval);
@@ -64,8 +71,18 @@ class Payment {
      * @param onTimeout callback that will be called if the payment timed out
      */
     start(onSuccess: CallbackFunction, onTimeout: CallbackFunction): void {
+        const bound = this._intervalFunction.bind(this, onSuccess, onTimeout);
+
         this.startTime = Date.now() as EpochTimeStamp;
-        this.interval = setInterval(this.#intervalFunction.bind(this, onSuccess, onTimeout), 7000);
+        this.interval = setInterval(bound, 7000);
+
+        if(this.wallet.ws) {
+            this.wallet.ws.on("confirmed", (data) => {
+                if(this.address != data.receiver) return;
+                
+                bound(onSuccess, onTimeout)
+            });
+        }
     }
 
     /**
@@ -94,7 +111,6 @@ class Payment {
         // Make sure the dest address is actually a NANO address
         if(!tools.validateAddress(destination)) throw Error("Destination must be a valid NANO address");
         
-        // Set all the variables!
         this.destination = destination;
         this.wallet  = wallet;
         this.amount  = amount;
@@ -102,6 +118,8 @@ class Payment {
         this.address = wallet.address; // For easier access.
         this.currentAmount = 0;        // Assume gateway address has 0 XNO (as it should)
         this.lastAddress = "";         // Make sure string is empty
+
+        if(this.wallet.ws) this.wallet.ws.subscribeAddress(this.address);
     }
 
 
@@ -123,8 +141,8 @@ class Payments {
      * @param amount amount in NANO, not RAW
      * @returns payment
      */
-    static create(config: Config, amount: number): Payment {
-        const wallet: Wallet = Wallet.new(config.seed ?? Wallet.generateSeed(), config.index ?? 0);
+    static create(config: Config, amount: number, walletOptions?: Options): Payment {
+        const wallet: Wallet = Wallet.new(config.seed ?? Wallet.generateSeed(), config.index ?? 0, walletOptions);
         const payment: Payment = new Payment(amount, config.timeout, wallet, config.destination);
 
         return payment;
