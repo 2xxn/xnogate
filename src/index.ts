@@ -1,6 +1,6 @@
 import { Wallet } from "./modules/wallet";
 import { Payments, Payment, Config } from "./modules/gateway"
-import { CallbackFunction } from "./types/library";
+import { CallbackFunction, Options } from "./types/library";
 
 const payments = {
     /**
@@ -12,12 +12,12 @@ const payments = {
      * @throws if config or amount is invalid
      * @returns
      */
-    create: (config: Config, amount: number): Payment => {
+    create: (config: Config, amount: number, walletOptions?: Options): Payment => {
         // If seed is not supplied, it will be generated randomly with the provided index (or 0 if that wasn't provided either)
         // Much advised to use a custom seed.
         if(isNaN(amount) || amount<=0) throw Error("Amount must be of number type, not NaN and higher than 0!");
 
-        return Payments.create(config, amount);
+        return Payments.create(config, amount, walletOptions);
     },
 
     /**
