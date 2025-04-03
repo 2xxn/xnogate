@@ -34,7 +34,7 @@
     "web-streams-polyfill": "^3.2.1",
     "webidl-conversions": "^7.0.0",
     "whatwg-url": "^11.0.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.1"
   },
   "scripts": {
     "build": "rmdir dist /s /q & tsc",
