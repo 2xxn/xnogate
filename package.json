@@ -15,7 +15,7 @@
     "fetch-blob": "^3.2.0",
     "formdata-polyfill": "^4.0.10",
     "ip": "^2.0.1",
-    "kareem": "^2.5.1",
+    "kareem": "^2.6.3",
     "memory-pager": "^1.5.0",
     "mpath": "^0.9.0",
     "mquery": "^5.0.0",
